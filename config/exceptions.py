@@ -1,5 +1,8 @@
+import logging
 from rest_framework.views import exception_handler
 from rest_framework import status
+
+logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
@@ -14,22 +17,34 @@ def custom_exception_handler(exc, context):
 
         if response.status_code == status.HTTP_400_BAD_REQUEST:
             error_response["error"]["code"] = "validation_error"
-            # Put detailed field errors directly inside "message"
             error_response["error"]["message"] = response.data
 
         elif response.status_code == status.HTTP_401_UNAUTHORIZED:
             error_response["error"]["code"] = "authentication_failed"
-            error_response["error"]["message"] = "Authentication credentials were not provided or are invalid."
+            error_response["error"]["message"] = (
+                "Authentication credentials were not provided or are invalid."
+            )
 
         elif response.status_code == status.HTTP_403_FORBIDDEN:
             error_response["error"]["code"] = "permission_denied"
-            error_response["error"]["message"] = "You do not have permission to perform this action."
+            error_response["error"]["message"] = (
+                "You do not have permission to perform this action."
+            )
+
+        elif response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+            error_response["error"]["code"] = "server_error"
+            error_response["error"]["message"] = (
+                "An unexpected error occurred. Please try again later."
+            )
+            logger.error(f"500 Internal Server Error: {exc} | Context: {context}")
 
         else:
-            if isinstance(response.data, dict) and "detail" in response.data:
-                error_response["error"]["message"] = response.data["detail"]
+            detail = getattr(exc, "detail", None)
+            if detail:
+                error_response["error"]["message"] = str(detail)
             else:
                 error_response["error"]["message"] = response.data
+            logger.warning(f"Unhandled exception: {exc} | Context: {context}")
 
         response.data = error_response
 

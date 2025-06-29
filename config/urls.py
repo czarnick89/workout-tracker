@@ -34,17 +34,6 @@ def home(request):
     '''
     return HttpResponse(html)
 
-# urlpatterns = [
-#     path('', home),
-#     path('admin/', admin.site.urls),
-#     path('api/', include('workouts.urls')),
-#     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-#     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-#     path('api/auth/', include('users.urls')),
-#     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-#     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-# ]
-
 urlpatterns = [
     path('', home),
     path('admin/', admin.site.urls),
