@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
+from django.conf import settings
 
 # Create your models here.
 class Workout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='workouts')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateField()
     name = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
