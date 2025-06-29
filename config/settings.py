@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'workouts',
+    'users',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -93,7 +95,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
+        'OPTIONS': {
+            'min_length': 8, }
+        },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
@@ -132,6 +136,15 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+        'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',        # Limits per authenticated user
+        'rest_framework.throttling.AnonRateThrottle',        # Limits per anonymous user
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/minute',    # Allow 10 requests per user per minute
+        'anon': '5/minute',     # Allow 5 requests per anonymous IP per minute
+    },
+    'EXCEPTION_HANDLER': 'config.exceptions.custom_exception_handler',
 }
 
 from datetime import timedelta
@@ -142,3 +155,5 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+AUTH_USER_MODEL = 'accounts.CustomUser'

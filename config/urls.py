@@ -23,12 +23,31 @@ from rest_framework_simplejwt.views import (
 )
 
 def home(request):
-    return HttpResponse("Welcome to Workout Tracker API")
+    html = '''
+    <html>
+      <head><title>Workout Tracker API</title></head>
+      <body>
+        <h1>Welcome to Workout Tracker API</h1>
+        <p><a href="/admin/">Go to Admin Panel</a></p>
+      </body>
+    </html>
+    '''
+    return HttpResponse(html)
+
+# urlpatterns = [
+#     path('', home),
+#     path('admin/', admin.site.urls),
+#     path('api/', include('workouts.urls')),
+#     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+#     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+#     path('api/auth/', include('users.urls')),
+#     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+#     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+# ]
 
 urlpatterns = [
     path('', home),
     path('admin/', admin.site.urls),
     path('api/', include('workouts.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/', include('users.urls')),  # This includes login, register, etc.
 ]
