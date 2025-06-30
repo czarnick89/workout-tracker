@@ -1,10 +1,22 @@
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import exception_handler
+from rest_framework.response import Response
 from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
+    # Handle Django model DoesNotExist exceptions
+    if isinstance(exc, ObjectDoesNotExist):
+        return Response({
+            "error": {
+                "code": "not_found",
+                "message": "The requested resource was not found."
+            }
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    # Let DRF handle the exception first
     response = exception_handler(exc, context)
 
     if response is not None:

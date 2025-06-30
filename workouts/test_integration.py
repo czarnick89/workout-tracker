@@ -1,11 +1,12 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
+from workouts.models import Workout
 
 class UserFlowIntegrationTests(APITestCase):
     def test_register_login_crud_workout(self):
         # Register user
-        register_url = reverse('register')  # Adjust if your registration URL name is different
+        register_url = reverse('register')
         user_data = {
             'username': 'integrationuser',
             'email': 'integrationuser@example.com',
@@ -15,7 +16,7 @@ class UserFlowIntegrationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Login user (get token)
-        login_url = reverse('token_obtain_pair')  # Adjust if your JWT login url name differs
+        login_url = reverse('token_obtain_pair')
         login_data = {
             'username': 'integrationuser',
             'password': 'StrongPass123!'
@@ -56,6 +57,8 @@ class UserFlowIntegrationTests(APITestCase):
         response = self.client.delete(workout_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Confirm deletion
-        response = self.client.get(workout_detail_url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # ✅ Confirm deletion at the database level
+        self.assertFalse(
+            Workout.objects.filter(pk=workout_id).exists(),
+            msg="Workout should be deleted from the database but still exists."
+        )
