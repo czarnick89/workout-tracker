@@ -17,6 +17,30 @@ import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+# Force HTTPS
+SECURE_SSL_REDIRECT = not DEBUG  # Redirect HTTP to HTTPS
+SESSION_COOKIE_SECURE = True  # Cookies over HTTPS only
+CSRF_COOKIE_SECURE = True
+
+# Prevent clickjacking
+X_FRAME_OPTIONS = "DENY"
+
+# Prevent content sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Ensure HSTS is used
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Disable browser XSS protection
+SECURE_BROWSER_XSS_FILTER = True
+
+# Referrer policy
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -24,12 +48,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='fallback-secret-key-for-dev')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 
+CORS_ALLOW_ALL_ORIGINS = True  # Only for local dev
 
 # Application definition
 
@@ -46,9 +68,11 @@ INSTALLED_APPS = [
     'users',
     'accounts',
     'corsheaders',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -57,7 +81,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -153,18 +177,26 @@ REST_FRAMEWORK = {
         'anon': '5/minute',     # Allow 5 requests per anonymous IP per minute
     },
     'EXCEPTION_HANDLER': 'config.exceptions.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    ],
 }
 
-if 'test' in sys.argv: # isnt working ?
-    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
+# if 'test' in sys.argv: # isnt working ?
+#     REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
 
 from datetime import timedelta
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -194,3 +226,6 @@ LOGGING = {
         },
     },
 }
+
+if 'test' in sys.argv:
+    SECURE_SSL_REDIRECT = False
